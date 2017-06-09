@@ -4,14 +4,11 @@ import os
 import pickle
 
 import chardet
-from nltk.tag import pos_tag
 import nltk.data
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
-from nltk.tokenize import word_tokenize
-from nltk.corpus import reuters
-from nltk.corpus import wordnet
+from nltk.corpus import stopwords, wordnet
 from nltk.stem import WordNetLemmatizer
+from nltk.tag import pos_tag
+from nltk.tokenize import word_tokenize
 
 
 def tokenize(text):

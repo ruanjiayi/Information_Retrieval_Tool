@@ -16,4 +16,19 @@
 
 8.写一个文档说明，写明实现了哪些功能，并如何使用程序进行操作。
 
+## 索引部分
+- python模块:`src/indexing.py`  
+    实现查询的同学**可能**使用的函数:
+    1. `get_term_list(text)`:  
+    将文本字符串转换成词形归并的后term_list
+    2. `terms2term_pos(terms,stopwords)`:  
+    将term_list去除停用词并转换成以term为key,位置列表为value的字典
+- pickle文件:`pyobjects/index.pickle`  
+    读入方法(**假设现在在src目录下**):
+    ```python3
+    import pickle
+    with open('../pyobjects/index.pickle', 'rb') as pickfile:
+        inv_dict = pickle.load(pickfile)
+    ```
+
 DDL:22/06/2017
