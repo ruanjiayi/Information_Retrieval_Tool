@@ -97,8 +97,8 @@ def terms2term_pos(terms, stopwords):
 
 def indexing_one_doc(inv_dict, title, body, docid):
     '''
-    :param inv_dict: inverted_table with term as key posting_list as value
-    :type inv_dict:dict{str:list(dict)}
+    :param inv_dict: inverted_table with term as key posting_list(actually a dict) as value
+    :type inv_dict:dict{str:dict{int:dict{str:object}}}
     :param title:the text of the document's title
     :type title:str
     :param body: the text of the document's body
@@ -113,17 +113,16 @@ def indexing_one_doc(inv_dict, title, body, docid):
     term_body_pos = terms2term_pos(terms_in_body, english_stops)
     for term in term_title_pos.keys():
         if term not in inv_dict.keys():
-            inv_dict[term] = []
-        inv_dict[term].append(
-            {'docid': docid, 'title_pos': term_title_pos[term]})
+            inv_dict[term] = {}
+        if docid not in inv_dict[term].keys():
+            inv_dict[term][docid] = {}
+        inv_dict[term][docid]['title_pos'] = term_title_pos[term]
     for term in term_body_pos.keys():
         if term not in inv_dict.keys():
-            inv_dict[term] = []
-        if (len(inv_dict[term]) != 0) and (inv_dict[term][-1]['docid'] == docid):
-            inv_dict[term][-1]['body_pos'] = term_body_pos[term]
-        else:
-            inv_dict[term].append(
-                {'docid': docid, 'body_pos': term_body_pos[term]})
+            inv_dict[term] = {}
+        if docid not in inv_dict[term].keys():
+            inv_dict[term][docid] = {}
+        inv_dict[term][docid]['body_pos'] = term_body_pos[term]
 
 
 def indexing(directory):
@@ -131,7 +130,7 @@ def indexing(directory):
     :param: directory:the directory including documents to be indexed
     :type: directory:str
     :return: inverted_table
-    :rtype:dict{str:list(dict)}
+    :rtype:dict{str:dict{int:dict{str:object}}}
     '''
     inv_dict = {}
     docids = []
@@ -170,7 +169,7 @@ def main():
     # print(inv_dict)
     # for key, value in inv_dict.items():
     #     if len(value) > 8000:
-    #         print(value[:20])
+    #         print(inv_dict[key][20949])
 
 if __name__ == "__main__":
     main()

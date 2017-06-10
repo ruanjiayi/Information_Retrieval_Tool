@@ -30,5 +30,9 @@
     with open('../pyobjects/index.pickle', 'rb') as pickfile:
         inv_dict = pickle.load(pickfile)
     ```
-
-DDL:22/06/2017
+- 索引的结构:
+    1. 三层字典，最外层是以term(type: str)为key，第二层是以docid(type: int)为key,第三层的key是数据的名字(目前只有三种可能：'title_pos'，'body_pos','weight'),然后'title_pos'和'body_pos'对应的值都是一个list(int)  
+    2. 诸如这样的用法：取love这个词在docid为2的文档的title中出现的位置: `inv_dict['love'][2]['title_pos']`  
+    存储love这个词在docid为2的文档的weight为1.8:`inv_dict['love'][2]['weight']=1.8`
+## DDL
+22/06/2017
