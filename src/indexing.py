@@ -2,13 +2,53 @@
 import html
 import os
 import pickle
-
+import re
 import chardet
 import nltk.data
 from nltk.corpus import stopwords, wordnet
 from nltk.stem import WordNetLemmatizer
 from nltk.tag import pos_tag
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import RegexpTokenizer
+
+replace_patterns = [
+    (r"won\'t", r"will not"),
+    (r"can\'t", r"cannot"),
+    (r"i\'m", r"i am"),
+    (r"ain\'t", r"is not"),
+    (r"(\w+)\'ll", r"\g<1> will"),
+    (r"(\w+)n\'t", r"\g<1> not"),
+    (r"(\w+)\'ve", r"\g<1> have"),
+    (r"(\w+)\'s", r"\g<1> is"),
+    (r"(\w)\'re", r"\g<1> are"),
+    (r"(\w+)\'d", r"\g<1> would")]
+
+
+class RegexpReplacer(object):
+
+    def __init__(self, patterns=replace_patterns):
+        self.patterns = [(re.compile(regex), repl)
+                         for (regex, repl) in patterns]
+
+    def replace(self, text):
+        s = text
+        for (pattern, repl) in self.patterns:
+            s = re.sub(pattern, repl, s)
+        return s
+
+
+def get_docids(directory):
+    '''
+    :param directory:the directory you want to scan
+    :type directory:str
+    :return: docids
+    :rtype: list(int)
+    '''
+    docids = []
+    for row in os.walk(directory):
+        for filename in row[2]:
+            docids.append(int(filename[:-5]))
+    docids.sort()
+    return docids
 
 
 def tokenize(text):
@@ -18,7 +58,11 @@ def tokenize(text):
     :return tokens:tokenized words
     :rtype: list(str)
     '''
-    return word_tokenize(text)
+    replacer = RegexpReplacer()
+    text = replacer.replace(text.lower())
+    tokenizer = RegexpTokenizer(r"[\w,.']+[\w]+")
+    tokens = tokenizer.tokenize(text)
+    return tokens
 
 
 def word_tag(words):
@@ -58,7 +102,7 @@ def lemmatize(wordtag):
     :rtype: str
     '''
     lemmatizer = WordNetLemmatizer()
-    return lemmatizer.lemmatize(wordtag[0], pos_map(wordtag[1])).lower()
+    return lemmatizer.lemmatize(wordtag[0], pos_map(wordtag[1]))
 
 
 def get_term_list(text):
@@ -107,6 +151,7 @@ def indexing_one_doc(inv_dict, title, body, docid):
     :type docid:int
     '''
     english_stops = set(stopwords.words('english'))
+    # english_stops = set('')
     terms_in_title = get_term_list(title)
     terms_in_body = get_term_list(body)
     term_title_pos = terms2term_pos(terms_in_title, english_stops)
@@ -133,17 +178,14 @@ def indexing(directory):
     :rtype:dict{str:dict{int:dict{str:object}}}
     '''
     inv_dict = {}
-    docids = []
-    for row in os.walk(directory):
-        for filename in row[2]:
-            docids.append(int(filename[:-5]))
-    docids.sort()
+    docids = get_docids(directory)
     for docid in docids:
         with open(directory + '/' + str(docid) + '.html', 'rb') as htmlfile:
             rawdata = htmlfile.read()
             encoding = chardet.detect(
                 rawdata)['encoding']
             full_text = rawdata.decode(encoding)
+            full_text = html.unescape(full_text)
             title = full_text.split('\n', 1)[0]
             body = full_text.split('\n', 1)[1].replace('\n', ' ')
             indexing_one_doc(inv_dict, title, body, docid)
@@ -163,13 +205,12 @@ def dumpfile(pyobject, filename):
 
 def main():
     # inv_dict = indexing('../data/Reuters')
-    # dumpfile(inv_dict, '../pyobjects/index.pickle')
-    with open('../pyobjects/index.pickle', 'rb') as pickfile:
+    # dumpfile(inv_dict, '../pyobjects/index_no_stopwords.pickle')
+    with open('../pyobjects/index_no_stopwords.pickle', 'rb') as pickfile:
         inv_dict = pickle.load(pickfile)
     # print(inv_dict)
     # for key, value in inv_dict.items():
-    #     if len(value) > 8000:
-    #         print(inv_dict[key][20949])
-
+    # if len(key) == 2:
+    # print(key)
 if __name__ == "__main__":
     main()
