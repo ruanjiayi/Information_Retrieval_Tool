@@ -7,6 +7,7 @@
 import pickle
 import math
 import indexing
+#define INFINITY 100000
 
 
 def compute_wf_idf(term_frequency, idf):
@@ -96,6 +97,40 @@ def topK(doc_score, K):
     return doc_list[:K]
 
 
+def compute_term_frequency(one_inv_dict):
+    '''
+    :param one_inv_dict:one inverted index record of a specific term
+    :type one_inv_dict:dict(dict)
+    :return: term_frequency
+    :rtype: double
+    '''
+    term_frequency = 0
+    for doc_id in one_inv_dict:
+        if 'title_pos' in one_inv_dict[doc_id]:
+            term_frequency += len(one_inv_dict[doc_id]['title_pos'])
+        if 'body_pos' in one_inv_dict[i]:
+            term_frequency += len(one_inv_dict[doc_id]['body_pos'])
+    return term_frequency
+
+
+def find_least_term(term_list, inv_dict):
+    '''
+    :param erm_list:the list of the query terms
+    :type erm_list:list[str]
+    :param inv_dict:the weighted inverted index
+    :type inv_dict:dict
+    :return: index
+    :rtype: int
+    '''
+    frequency = INFINITY
+    for i in range(len(term_list)):
+        term_frequency = compute_term_frequency(inv_dict[term_list[i]])
+        if term_frequency < frequency:
+            frequency = term_frequency
+            index = i
+    return index
+
+
 def get_query(query, K, inv_dict):
     '''
     :param query:the query put in by users
@@ -108,7 +143,16 @@ def get_query(query, K, inv_dict):
     :rtype: list[int]
     '''
     term_list = indexing.get_term_list(query)
+    for i in range(len(term_list)):
+        if term_list[i] not in inv_dict:
+            #call the spelling correction function
+            term[i] = spelling_correction(term[i])
     doc_score = compute_doc_score(term_list, inv_dict)
+    while len(doc_score) < K:
+        #find the term of the least frequency in the query list
+        i = find_least_term(term_list, inv_dict)
+        term[i] = spelling_correction(term[i])
+        doc_score = compute_doc_score(term_list, inv_dict)
     doc_list = topK(doc_score, K)
     return doc_list
 
