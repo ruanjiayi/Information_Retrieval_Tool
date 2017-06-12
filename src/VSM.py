@@ -4,9 +4,13 @@
 # 2.adjust the output form(now we only output the title of the top articles)
 
 
-import pickle
 import math
+import pickle
+import re
+
 import indexing
+
+
 # define INFINITY 100000
 
 
@@ -131,10 +135,10 @@ def find_least_term(term_list, inv_dict):
     return index
 
 
-def get_query(query, K, inv_dict):
+def get_query(term_list, K, inv_dict):
     '''
-    :param query:the query put in by users
-    :type query:str
+    :param term_list:the term list of query
+    :type term_list:list(str)
     :param K:the number of the returning docs
     :type K:int
     :param inv_dict:the weighted inverted index
@@ -142,7 +146,6 @@ def get_query(query, K, inv_dict):
     :return: doc_list
     :rtype: list[int]
     '''
-    term_list = indexing.get_term_list(query)
     for i in range(len(term_list)):
         if term_list[i] not in inv_dict.keys():
             # call the spelling correction function
@@ -157,16 +160,34 @@ def get_query(query, K, inv_dict):
     return doc_list
 
 
-def print_articles(doc_list):
+def print_articles(query_termlist, doc_list):
     '''
+    :param query_termlist:
+    :type query_termlist:list(str)
     :param doc_list:the id of the doc that need to be displayed
     :type doc_list:list
     '''
     directory = "../Reuters"
-    for doc_id in doc_list:
-        print(doc_id)
-        full_text = indexing.parse_html(directory, doc_id)
-        print(full_text)
+    for docid in doc_list:
+        print(docid)
+        full_text = indexing.parse_html(directory, docid)
+        text = highlight(query_termlist, full_text)
+        print(text)
+
+
+def highlight(term_list, text):
+    raw_words = indexing.tokenize(text)
+    lower_words = [word.lower() for word in raw_words]
+    tagged_words = indexing.word_tag(lower_words)
+    lemmatized_words = [indexing.lemmatize(
+        wordtag) for wordtag in tagged_words]
+    raw_words_tobe_highlight = [raw_words[index] for index, term in enumerate(
+        lemmatized_words) if term in set(term_list)]
+    highlight_set = set(raw_words_tobe_highlight)
+    print(highlight_set)
+    for word in highlight_set:
+        text = text.replace(word, "\033[1;31;40m" + word + "\033[0m")
+    return text
 
 
 def main():
@@ -174,12 +195,13 @@ def main():
     with open('../pyobjects/weighted_index.pickle', 'rb') as pickfile:
         inv_dict = pickle.load(pickfile)
     while(1):
-        print("Please put in the query:")
-        query = input()
-        print("Please put in the the number of how many articles you want to find:")
-        K = input()
+        query = input("Please put in the query:\n")
+        K = input(
+            "Please put in the the number of how many articles you want to find:\n")
         print("The result is:")
-        print_articles(get_query(query, int(K), inv_dict))
+        query_termlist = indexing.get_term_list(query)
+        doc_list = get_query(query_termlist, int(K), inv_dict)
+        print_articles(query_termlist, doc_list)
     #     #print(get_query(query, int(K), inv_dict))
 
 if __name__ == "__main__":

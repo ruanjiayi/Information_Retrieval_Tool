@@ -59,7 +59,7 @@ def tokenize(text):
     :rtype: list(str)
     '''
     replacer = RegexpReplacer()
-    text = replacer.replace(text.lower())
+    text = replacer.replace(text)
     tokenizer = RegexpTokenizer(r"[\w,.']+[\w]+")
     tokens = tokenizer.tokenize(text)
     return tokens
@@ -112,8 +112,8 @@ def get_term_list(text):
     :return: lemmatized_words
     :rtype: list(str)
     '''
-    raw_words = tokenize(text)
-    tagged_words = word_tag(raw_words)
+    lower_words = tokenize(text.lower())
+    tagged_words = word_tag(lower_words)
     lemmatized_words = [lemmatize(wordtag) for wordtag in tagged_words]
     return lemmatized_words
 
@@ -150,8 +150,8 @@ def indexing_one_doc(inv_dict, title, body, docid):
     :param docid: the docid of the document to be indexed
     :type docid:int
     '''
-    english_stops = set(stopwords.words('english'))
-    # english_stops = set('')
+    # english_stops = set(stopwords.words('english'))
+    english_stops = set('')
     terms_in_title = get_term_list(title)
     terms_in_body = get_term_list(body)
     term_title_pos = terms2term_pos(terms_in_title, english_stops)
