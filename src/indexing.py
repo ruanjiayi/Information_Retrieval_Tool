@@ -180,16 +180,29 @@ def indexing(directory):
     inv_dict = {}
     docids = get_docids(directory)
     for docid in docids:
-        with open(directory + '/' + str(docid) + '.html', 'rb') as htmlfile:
-            rawdata = htmlfile.read()
-            encoding = chardet.detect(
-                rawdata)['encoding']
-            full_text = rawdata.decode(encoding)
-            full_text = html.unescape(full_text)
-            title = full_text.split('\n', 1)[0]
-            body = full_text.split('\n', 1)[1].replace('\n', ' ')
-            indexing_one_doc(inv_dict, title, body, docid)
+        full_text = parse_html(directory, docid)
+        title = full_text.split('\n', 1)[0]
+        body = full_text.split('\n', 1)[1].replace('\n', ' ')
+        indexing_one_doc(inv_dict, title, body, docid)
     return inv_dict
+
+
+def parse_html(directory, docid):
+    '''
+    :param directory: directory including htmlfiles
+    :type directory:str
+    :param docid:the docid of the html file to be parsed
+    :type docid:int
+    :return: full_text
+    :rtype: str
+    '''
+    with open(directory + '/' + str(docid) + '.html', 'rb') as htmlfile:
+        rawdata = htmlfile.read()
+        encoding = chardet.detect(
+            rawdata)['encoding']
+        full_text = rawdata.decode(encoding)
+        full_text = html.unescape(full_text)
+    return full_text
 
 
 def dumpfile(pyobject, filename):
