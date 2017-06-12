@@ -184,7 +184,6 @@ def highlight(term_list, text):
     raw_words_tobe_highlight = [raw_words[index] for index, term in enumerate(
         lemmatized_words) if term in set(term_list)]
     highlight_set = set(raw_words_tobe_highlight)
-    print(highlight_set)
     for word in highlight_set:
         text = text.replace(word, "\033[1;31;40m" + word + "\033[0m")
     return text
