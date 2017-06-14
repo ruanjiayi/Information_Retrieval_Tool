@@ -15,12 +15,13 @@ def spelling_correction(raw_term):
     :rtype: str
     '''
     corrector = enchant.Dict("en_US")
-    if(raw_term.strip()==""):
+    if (raw_term.strip() == ""):
         return ;
-    if(corrector.check(raw_term)==True):
-        return raw_term
+    if (corrector.check(raw_term) == True):
+        return ;
     else:
         return corrector.suggest(raw_term)[0]
+
 
 def synonyms(raw_term):
     '''
@@ -32,8 +33,10 @@ def synonyms(raw_term):
     if (raw_term.strip() == ""):
         return;
     synonyms_list = [x.name().split(".")[0] for x in wn.synsets(raw_term)]
-    synonyms_list=sorted(set(synonyms_list), key=synonyms_list.index)
+    synonyms_list = sorted(set(synonyms_list), key=synonyms_list.index)
     return synonyms_list
+
+
 
 
 # if __name__ == "__main__":
