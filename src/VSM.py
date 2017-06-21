@@ -1,13 +1,17 @@
-#author:Jiayi Ruan
-#to do list:
+# author:Jiayi Ruan
+# to do list:
 # 1.add spelling correction features
 # 2.adjust the output form(now we only output the title of the top articles)
 
 
-import pickle
 import math
+import pickle
+import re
+
 import indexing
-#define INFINITY 100000
+
+
+# define INFINITY 100000
 
 
 def compute_wf_idf(term_frequency, idf):
@@ -22,7 +26,7 @@ def compute_wf_idf(term_frequency, idf):
     if term_frequency <= 0:
         return 0.0
     wf = 1 + math.log(term_frequency)
-    return wf*idf
+    return wf * idf
 
 
 def compute_weight(one_inv_dict, N):
@@ -34,10 +38,10 @@ def compute_weight(one_inv_dict, N):
     :return: weight
     :rtype: double
     '''
-    #compute the total count in all doc.
+    # compute the total count in all doc.
     document_frequency = len(one_inv_dict)
     if document_frequency > 0:
-        idf = math.log(N/document_frequency)
+        idf = math.log(N / document_frequency)
         for i in one_inv_dict:
             term_frequency = 0
             if 'title_pos' in one_inv_dict[i]:
@@ -54,12 +58,12 @@ def get_doc_count():
 
 
 def add_weight_to_index():
-    #no param no return
-    #To adjust the index with add the weight to every doc record
+    # no param no return
+    # To adjust the index with add the weight to every doc record
     with open('../pyobjects/index.pickle', 'rb') as pickfile:
         inv_dict = pickle.load(pickfile)
-        for i in inv_dict:
-            compute_weight(inv_dict[i], get_doc_count())
+        for term in inv_dict.keys():
+            compute_weight(inv_dict[term], get_doc_count())
     with open('../pyobjects/weighted_index.pickle', 'wb') as file:
         pickle.dump(inv_dict, file)
 
@@ -131,10 +135,10 @@ def find_least_term(term_list, inv_dict):
     return index
 
 
-def get_query(query, K, inv_dict):
+def get_query(term_list, K, inv_dict):
     '''
-    :param query:the query put in by users
-    :type query:str
+    :param term_list:the term list of query
+    :type term_list:list(str)
     :param K:the number of the returning docs
     :type K:int
     :param inv_dict:the weighted inverted index
@@ -142,14 +146,13 @@ def get_query(query, K, inv_dict):
     :return: doc_list
     :rtype: list[int]
     '''
-    term_list = indexing.get_term_list(query)
     for i in range(len(term_list)):
-        if term_list[i] not in inv_dict:
-            #call the spelling correction function
+        if term_list[i] not in inv_dict.keys():
+            # call the spelling correction function
             term[i] = spelling_correction(term[i])
     doc_score = compute_doc_score(term_list, inv_dict)
     while len(doc_score) < K:
-        #find the term of the least frequency in the query list
+        # find the term of the least frequency in the query list
         i = find_least_term(term_list, inv_dict)
         term[i] = spelling_correction(term[i])
         doc_score = compute_doc_score(term_list, inv_dict)
@@ -157,30 +160,48 @@ def get_query(query, K, inv_dict):
     return doc_list
 
 
-def print_articles(doc_list):
+def print_articles(query_termlist, doc_list):
     '''
+    :param query_termlist:
+    :type query_termlist:list(str)
     :param doc_list:the id of the doc that need to be displayed
     :type doc_list:list
     '''
-    path = "../Reuters/"
-    for doc_id in doc_list:
-        print(doc_id)
-        doc_path = path + str(doc_id) + ".html"
-        print
-        with open(doc_path, 'rb') as article:
-            title = article.readline()
-            print(title)
+    directory = "../Reuters"
+    for docid in doc_list:
+        print(docid)
+        full_text = indexing.parse_html(directory, docid)
+        text = highlight(query_termlist, full_text)
+        print(text)
 
 
-if __name__ == "__main__":
-    #add_weight_to_index()
+def highlight(term_list, text):
+    raw_words = indexing.tokenize(text)
+    lower_words = [word.lower() for word in raw_words]
+    tagged_words = indexing.word_tag(lower_words)
+    lemmatized_words = [indexing.lemmatize(
+        wordtag) for wordtag in tagged_words]
+    raw_words_tobe_highlight = [raw_words[index] for index, term in enumerate(
+        lemmatized_words) if term in set(term_list)]
+    highlight_set = set(raw_words_tobe_highlight)
+    for word in highlight_set:
+        text = text.replace(word, "\033[1;31;40m" + word + "\033[0m")
+    return text
+
+
+def main():
+        # add_weight_to_index()
     with open('../pyobjects/weighted_index.pickle', 'rb') as pickfile:
         inv_dict = pickle.load(pickfile)
     while(1):
-        print("Please put in the query:")
-        query = input()
-        print("Please put in the the number of how many articles you want to find:")
-        K = input()
+        query = input("Please put in the query:\n")
+        K = input(
+            "Please put in the the number of how many articles you want to find:\n")
         print("The result is:")
-        print_articles(get_query(query, int(K), inv_dict))
-        #print(get_query(query, int(K), inv_dict))
+        query_termlist = indexing.get_term_list(query)
+        doc_list = get_query(query_termlist, int(K), inv_dict)
+        print_articles(query_termlist, doc_list)
+    #     #print(get_query(query, int(K), inv_dict))
+
+if __name__ == "__main__":
+    main()
