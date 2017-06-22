@@ -217,7 +217,7 @@ def dumpfile(pyobject, filename):
 
 
 def main():
-    inv_dict = indexing('../data/Reuters')
+    inv_dict = indexing('../Reuters')
     dumpfile(inv_dict, '../pyobjects/index.pickle')
     # with open('../pyobjects/index_no_stopwords.pickle', 'rb') as pickfile:
     #     inv_dict = pickle.load(pickfile)

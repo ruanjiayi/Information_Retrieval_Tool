@@ -7,7 +7,7 @@ import indexing
 import VSM
 
 
-def spelling_correction(raw_term):
+def spelling_correction(raw_term, inv_dict):
     '''
     :param raw_term:the term needing spelling correction
     :type raw_term: str
@@ -16,11 +16,11 @@ def spelling_correction(raw_term):
     '''
     corrector = enchant.Dict("en_US")
     if (raw_term.strip() == ""):
-        return ;
+        return
     if (corrector.check(raw_term) == True):
-        return ;
+        return
     else:
-        return corrector.suggest(raw_term)[0]
+        return [term for term in corrector.suggest(raw_term) if term in inv_dict.keys()]
 
 
 def synonyms(raw_term):
@@ -31,12 +31,10 @@ def synonyms(raw_term):
     :rtype: list[str]
     '''
     if (raw_term.strip() == ""):
-        return;
+        return
     synonyms_list = [x.name().split(".")[0] for x in wn.synsets(raw_term)]
     synonyms_list = sorted(set(synonyms_list), key=synonyms_list.index)
     return synonyms_list
-
-
 
 
 # if __name__ == "__main__":
