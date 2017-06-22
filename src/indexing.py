@@ -217,10 +217,10 @@ def dumpfile(pyobject, filename):
 
 
 def main():
-    # inv_dict = indexing('../data/Reuters')
-    # dumpfile(inv_dict, '../pyobjects/index_no_stopwords.pickle')
-    with open('../pyobjects/index_no_stopwords.pickle', 'rb') as pickfile:
-        inv_dict = pickle.load(pickfile)
+    inv_dict = indexing('../data/Reuters')
+    dumpfile(inv_dict, '../pyobjects/index.pickle')
+    # with open('../pyobjects/index_no_stopwords.pickle', 'rb') as pickfile:
+    #     inv_dict = pickle.load(pickfile)
     # print(inv_dict)
     # for key, value in inv_dict.items():
     # if len(key) == 2:
